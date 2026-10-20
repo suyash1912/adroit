@@ -1,4 +1,9 @@
-import { DEFAULT_DATA, type AppData } from "./domain";
+import {
+  DEFAULT_DATA,
+  THEMES,
+  type AdroitTheme,
+  type AppData,
+} from "./domain";
 
 const KEY = "adroit.local.v1";
 const RECOVERY_PREFIX = "adroit.local.recovery.";
@@ -12,6 +17,7 @@ type VersionOneData = Omit<
   AppData,
   "version" | "completedLearningItems"
 > & { version: 1 };
+type VersionTwoData = Omit<AppData, "version"> & { version: 2 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -32,10 +38,21 @@ function isPreferences(value: unknown): boolean {
     isString(value.language) &&
     typeof value.interviewDuration === "number" &&
     Number.isFinite(value.interviewDuration) &&
-    (value.theme === "light" ||
+    (isTheme(value.theme) ||
+      value.theme === "light" ||
       value.theme === "dark" ||
       value.theme === "system")
   );
+}
+
+function isTheme(value: unknown): value is AdroitTheme {
+  return THEMES.some((theme) => theme.id === value);
+}
+
+function normalizedTheme(value: unknown): AdroitTheme {
+  if (isTheme(value)) return value;
+  if (value === "light") return "crimson-pop";
+  return "midnight-ranger";
 }
 
 function isAnalysis(value: unknown): boolean {
@@ -114,7 +131,23 @@ function isMentorNote(value: unknown): boolean {
   );
 }
 
-function isAppData(value: unknown): value is AppData {
+function isVersionOneData(value: unknown): value is VersionOneData {
+  return (
+    isRecord(value) &&
+    value.version === 1 &&
+    isPreferences(value.preferences) &&
+    Array.isArray(value.analyses) &&
+    value.analyses.every(isAnalysis) &&
+    Array.isArray(value.attempts) &&
+    value.attempts.every(isAttempt) &&
+    Array.isArray(value.interviews) &&
+    value.interviews.every(isInterview) &&
+    Array.isArray(value.mentorNotes) &&
+    value.mentorNotes.every(isMentorNote)
+  );
+}
+
+function isVersionTwoData(value: unknown): value is VersionTwoData {
   return (
     isRecord(value) &&
     value.version === 2 &&
@@ -131,11 +164,28 @@ function isAppData(value: unknown): value is AppData {
   );
 }
 
-function isVersionOneData(value: unknown): value is VersionOneData {
+function migrateToVersionThree(
+  value: VersionOneData | VersionTwoData,
+): AppData {
+  return {
+    ...value,
+    version: 3,
+    preferences: {
+      ...value.preferences,
+      theme: normalizedTheme(value.preferences.theme),
+    },
+    completedLearningItems:
+      "completedLearningItems" in value ? value.completedLearningItems : [],
+  };
+}
+
+function isVersionThreeData(value: unknown): value is AppData {
   return (
     isRecord(value) &&
-    value.version === 1 &&
+    value.version === 3 &&
     isPreferences(value.preferences) &&
+    isRecord(value.preferences) &&
+    isTheme(value.preferences.theme) &&
     Array.isArray(value.analyses) &&
     value.analyses.every(isAnalysis) &&
     Array.isArray(value.attempts) &&
@@ -143,7 +193,8 @@ function isVersionOneData(value: unknown): value is VersionOneData {
     Array.isArray(value.interviews) &&
     value.interviews.every(isInterview) &&
     Array.isArray(value.mentorNotes) &&
-    value.mentorNotes.every(isMentorNote)
+    value.mentorNotes.every(isMentorNote) &&
+    isStringArray(value.completedLearningItems)
   );
 }
 
@@ -162,15 +213,17 @@ export function loadData(): LoadResult {
     if (raw === null) return { data: structuredClone(DEFAULT_DATA) };
     const value: unknown = JSON.parse(raw);
 
-    if (isAppData(value)) return { data: value };
+    if (isVersionThreeData(value)) return { data: value };
 
+    if (isVersionTwoData(value)) {
+      return {
+        data: migrateToVersionThree(value),
+        warning: "Your saved data was safely upgraded to the latest theme format.",
+      };
+    }
     if (isVersionOneData(value)) {
       return {
-        data: {
-          ...value,
-          version: 2,
-          completedLearningItems: [],
-        },
+        data: migrateToVersionThree(value),
         warning: "Your saved data was safely upgraded to the latest format.",
       };
     }
@@ -191,7 +244,7 @@ export function loadData(): LoadResult {
 }
 
 export function saveData(data: AppData): boolean {
-  if (!isAppData(data)) return false;
+  if (!isVersionThreeData(data)) return false;
   try {
     localStorage.setItem(KEY, JSON.stringify(data));
     return true;

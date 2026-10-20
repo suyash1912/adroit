@@ -15,6 +15,13 @@ Vitest covers skill alias and matching boundaries, role weighting, local-data mi
 
 Use a current desktop Chromium-based browser and a narrow/mobile viewport. Repeat key navigation and forms with keyboard-only input and check visible focus, accessible names, and reduced-motion settings.
 
+### Appearance themes
+
+- Switch among Midnight Ranger, Choco-Choco, and Crimson Pop from the sidebar; verify the selected name, preview, page surfaces, navigation, cards, forms, tables, and coding workspace remain legible across routes.
+- Repeat theme changes from Settings and confirm both controls stay synchronized after refresh.
+- Use keyboard-only navigation and a mobile viewport to reach and operate the theme picker. Confirm focus visibility and that reduced-motion settings suppress the visual transitions.
+- Load legacy version-one/two records and verify migration preserves user records while mapping old light to Crimson Pop and old dark/system to Midnight Ranger.
+
 ### Learning journey
 
 1. Start with empty browser storage. Confirm the dashboard shows honest zero/empty states and the plan asks for a target role.
@@ -53,7 +60,7 @@ Use a current desktop Chromium-based browser and a narrow/mobile viewport. Repea
 ### Persistence, exports, and error recovery
 
 - Reload after saving reports, attempts, interview drafts, notes, preferences, and plan completion.
-- Verify version-one data migrates; malformed/unsupported data yields a visible warning and a recovery copy. Confirm invalid nested records are not passed into route components.
+- Verify version-one/two data migrates; malformed/unsupported data yields a visible warning and a recovery copy. Confirm invalid nested records are not passed into route components.
 - Test blocked/quota-exceeded local storage and confirm the UI does not report a successful save.
 - Export JSON and CSV, inspect field completeness and CSV quoting, then clear local data and verify records, recovery copies, and coding drafts are gone.
 

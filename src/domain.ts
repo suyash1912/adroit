@@ -71,15 +71,20 @@ export type MentorNote = {
   updatedAt: string;
 };
 
+export type AdroitTheme =
+  | "midnight-ranger"
+  | "choco-choco"
+  | "crimson-pop";
+
 export type Preferences = {
   role: string;
   language: string;
   interviewDuration: number;
-  theme: "light" | "dark" | "system";
+  theme: AdroitTheme;
 };
 
 export type AppData = {
-  version: 2;
+  version: 3;
   preferences: Preferences;
   analyses: ResumeAnalysis[];
   attempts: CodingAttempt[];
@@ -89,12 +94,12 @@ export type AppData = {
 };
 
 export const DEFAULT_DATA: AppData = {
-  version: 2,
+  version: 3,
   preferences: {
     role: "",
     language: "JavaScript",
     interviewDuration: 20,
-    theme: "light",
+    theme: "midnight-ranger",
   },
   analyses: [],
   attempts: [],
@@ -102,6 +107,32 @@ export const DEFAULT_DATA: AppData = {
   mentorNotes: [],
   completedLearningItems: [],
 };
+
+export const THEMES: {
+  id: AdroitTheme;
+  name: string;
+  description: string;
+  swatches: [string, string, string];
+}[] = [
+  {
+    id: "midnight-ranger",
+    name: "Midnight Ranger",
+    description: "Focused, technical, and atmospheric",
+    swatches: ["#100c1b", "#211832", "#a88aff"],
+  },
+  {
+    id: "choco-choco",
+    name: "Choco-Choco",
+    description: "Warm, tactile, and comfortable",
+    swatches: ["#211712", "#3b281f", "#d59a5a"],
+  },
+  {
+    id: "crimson-pop",
+    name: "Crimson Pop",
+    description: "Bright, editorial, and expressive",
+    swatches: ["#fffaf7", "#f1e6e1", "#c32645"],
+  },
+];
 
 export const ROLES = [
   {

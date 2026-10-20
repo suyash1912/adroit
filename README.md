@@ -18,6 +18,7 @@ Adroit is a practice tool. I do not present its keyword matches or self-review s
 - **Industry Connect (`/connect`)**: I provide six illustrative sample profiles with filters for stage, industry, expertise, and consultation topic. Users can choose topics and save career goals, questions, and an agenda locally.
 - **Progress (`/progress`)**: I derive reports, attempts, interview history, and topic accuracy from actual records. Users can filter by time, delete individual records, and export JSON or CSV.
 - **Guided demo mode**: Users can explicitly enter a synthetic sample workspace, follow resume/coding/interview/plan links, reset it, or exit. Demo records are held separately in memory; demo code drafts use a distinct session-storage namespace. No successful attempt or interview is prefilled, and exiting discards demo activity without changing real records.
+- **Appearance**: I provide three persistent visual themes—Midnight Ranger, Choco-Choco, and Crimson Pop—with the same theme preference available from the sidebar and Settings. The switcher includes color previews and works with keyboard and touch.
 - **Settings (`/settings`)**: I store the preferred role, coding language, interview duration, and appearance. Users can export or clear local data and review privacy limitations.
 
 ## Routes
@@ -128,7 +129,7 @@ I store the versioned application record under `adroit.local.v1`. Its `AppData` 
 - `mentorNotes`: local goal, selected topics, questions, and agenda.
 - `completedLearningItems`: identifiers of learning-plan steps the user marked complete.
 
-I keep coding drafts in separate `adroit.draft.<questionId>` keys and cap each draft at 50,000 characters. `loadData()` validates saved records at runtime, migrates valid version-one records to version two, and preserves malformed or unsupported input under a timestamped recovery key before starting with defaults. `saveData()` validates the full record and catches storage failures; the UI warns if browser storage is unavailable or full. Clearing local data removes the primary record, recovery copies, and coding drafts.
+I keep coding drafts in separate `adroit.draft.<questionId>` keys and cap each draft at 50,000 characters. `loadData()` validates saved records at runtime, migrates valid version-one and version-two records to version three, maps old light appearance to Crimson Pop and old dark/system appearance to Midnight Ranger, and preserves malformed or unsupported input under a timestamped recovery key before starting with defaults. Version three stores the selected theme alongside preferences without changing resume or activity records. `saveData()` validates the full record and catches storage failures; the UI warns if browser storage is unavailable or full. Clearing local data removes the primary record, recovery copies, and coding drafts.
 
 ## Resume extraction and matching
 

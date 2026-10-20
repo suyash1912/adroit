@@ -107,6 +107,52 @@ describe("local records and curated data", () => {
     ).toBe(true);
   });
 
+  it("defaults to Midnight Ranger and migrates legacy themes without dropping records", () => {
+    const attempt = {
+      id: "attempt-1",
+      questionId: "two-sum",
+      passed: 2,
+      total: 2,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      durationSeconds: 45,
+    };
+    const previousData = {
+      ...DEFAULT_DATA,
+      version: 2,
+      preferences: { ...DEFAULT_DATA.preferences, theme: "dark" },
+      attempts: [attempt],
+      completedLearningItems: ["frontend:resume"],
+    };
+    localStorage.setItem("adroit.local.v1", JSON.stringify(previousData));
+    const result = loadData();
+    expect(DEFAULT_DATA.preferences.theme).toBe("midnight-ranger");
+    expect(result.data.version).toBe(3);
+    expect(result.data.preferences.theme).toBe("midnight-ranger");
+    expect(result.data.attempts).toEqual([attempt]);
+    expect(result.data.completedLearningItems).toEqual(["frontend:resume"]);
+    expect(result.warning).toMatch(/upgraded/i);
+  });
+
+  it("maps the former light theme to Crimson Pop during migration", () => {
+    const previousData = {
+      ...DEFAULT_DATA,
+      version: 2,
+      preferences: { ...DEFAULT_DATA.preferences, theme: "light" },
+    };
+    localStorage.setItem("adroit.local.v1", JSON.stringify(previousData));
+    expect(loadData().data.preferences.theme).toBe("crimson-pop");
+  });
+
+  it("maps the former system theme to Midnight Ranger during migration", () => {
+    const previousData = {
+      ...DEFAULT_DATA,
+      version: 2,
+      preferences: { ...DEFAULT_DATA.preferences, theme: "system" },
+    };
+    localStorage.setItem("adroit.local.v1", JSON.stringify(previousData));
+    expect(loadData().data.preferences.theme).toBe("midnight-ranger");
+  });
+
   it("saves and clears records locally", () => {
     const data = {
       ...DEFAULT_DATA,
@@ -125,9 +171,29 @@ describe("local records and curated data", () => {
       JSON.stringify({ ...versionOne, version: 1 }),
     );
     const result = loadData();
-    expect(result.data.version).toBe(2);
+    expect(result.data.version).toBe(3);
     expect(result.data.completedLearningItems).toEqual([]);
     expect(result.warning).toMatch(/upgraded/i);
+  });
+
+  describe("appearance themes", () => {
+    it("exposes all three themes and saves the sidebar selection", () => {
+      render(
+        <MemoryRouter>
+          <App />
+        </MemoryRouter>,
+      );
+      fireEvent.click(screen.getByRole("button", { name: /midnight ranger/i }));
+      fireEvent.click(screen.getByRole("button", { name: /crimson pop/i }));
+      expect(document.documentElement.dataset.theme).toBe("crimson-pop");
+      expect(
+        JSON.parse(localStorage.getItem("adroit.local.v1") ?? "{}").preferences
+          .theme,
+      ).toBe("crimson-pop");
+      fireEvent.click(screen.getByRole("button", { name: /crimson pop/i }));
+      expect(screen.getByRole("button", { name: /choco-choco/i })).toBeTruthy();
+      expect(screen.getByRole("button", { name: /midnight ranger/i })).toBeTruthy();
+    });
   });
 
   it("rejects malformed nested records instead of exposing them to the app", () => {

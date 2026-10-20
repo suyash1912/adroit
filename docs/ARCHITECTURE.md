@@ -2,7 +2,7 @@
 
 ## Data lifecycle
 
-`src/domain.ts` defines the versioned app record. `src/storage.ts` validates persisted records at runtime, migrates valid version-one records to version two, preserves malformed or unsupported records under timestamped recovery keys, catches storage failures, and exports a JSON backup. Version two adds `completedLearningItems`. The app writes small records and preferences to `localStorage`; code drafts use separate `adroit.draft.*` keys and are size-limited. The user can export data or clear the app's records, recovery copies, and drafts from Settings.
+`src/domain.ts` defines the versioned app record. `src/storage.ts` validates persisted records at runtime, migrates valid version-one and version-two records to version three, preserves malformed or unsupported records under timestamped recovery keys, catches storage failures, and exports a JSON backup. Version two adds `completedLearningItems`; version three adds the three-choice appearance preference. Existing light preferences map to Crimson Pop and dark/system preferences map to Midnight Ranger. The app writes small records and preferences to `localStorage`; code drafts use separate `adroit.draft.*` keys and are size-limited. The user can export data or clear the app's records, recovery copies, and drafts from Settings.
 
 Original resume files are never persisted. Resume analysis stores a bounded text excerpt only after explicit consent. Interview answer text is stored with the session so interrupted sessions survive refresh; browser storage is not encrypted. A browser's site-data controls can delete any of these records.
 
@@ -10,6 +10,7 @@ Original resume files are never persisted. Resume analysis stores a bounded text
 
 - `App.tsx` owns route composition, shared state, user workflows, and local feedback.
 - `domain.ts` holds static catalogs and serializable domain types.
+- `refresh.css` defines the Midnight Ranger, Choco-Choco, and Crimson Pop token sets and their distinct visual treatments. The sidebar theme picker and Settings control update the same persisted preference.
 - `learning.ts` derives role-aware recommendations from the current role, its latest saved analysis, actual coding attempts, and interview self-ratings. It does not call a remote model or claim proficiency.
 - `demo.ts` returns a clearly synthetic sample resume analysis. Demo activity uses isolated in-memory app state; code drafts use a separate session-storage namespace and are removed on reset/exit.
 - `resume.ts` owns local PDF extraction and deterministic skill matching.

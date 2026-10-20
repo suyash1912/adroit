@@ -40,6 +40,7 @@ import {
   Menu,
   MessageSquareText,
   Pause,
+  Palette,
   Play,
   RotateCcw,
   Search,
@@ -59,6 +60,8 @@ import {
   MENTORS,
   QUESTIONS,
   ROLES,
+  THEMES,
+  type AdroitTheme,
   type AppData,
   type CodingAttempt,
   type InterviewSession,
@@ -203,7 +206,7 @@ export default function App() {
 }
 
 function Shell() {
-  const { demoMode, resetDemo, exitDemo } = useData();
+  const { data, setData, demoMode, resetDemo, exitDemo } = useData();
   const [menu, setMenu] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -240,6 +243,15 @@ function Shell() {
           <div className="privacy-chip">
             <ShieldCheck size={15} /> Saved on this device
           </div>
+          <ThemePicker
+            theme={data.preferences.theme}
+            onChange={(theme) =>
+              setData((current) => ({
+                ...current,
+                preferences: { ...current.preferences, theme },
+              }))
+            }
+          />
           <NavLink to="/settings" className="nav-item">
             <Settings size={17} /> Settings
           </NavLink>
@@ -323,6 +335,73 @@ function Shell() {
           <Link to="/settings">Privacy & data</Link>
         </footer>
       </div>
+    </div>
+  );
+}
+
+function ThemePicker({
+  theme,
+  onChange,
+}: {
+  theme: AdroitTheme;
+  onChange: (theme: AdroitTheme) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const selectedTheme = THEMES.find((item) => item.id === theme) ?? THEMES[0];
+
+  return (
+    <div className="theme-picker">
+      <button
+        className="theme-picker-trigger"
+        type="button"
+        aria-expanded={open}
+        aria-controls="theme-options"
+        onClick={() => setOpen((current) => !current)}
+      >
+        <Palette size={16} />
+        <span>
+          <small>APPEARANCE</small>
+          <b>{selectedTheme.name}</b>
+        </span>
+        <span className="theme-swatch-preview" aria-hidden="true">
+          {selectedTheme.swatches.map((color) => (
+            <i key={color} style={{ backgroundColor: color }} />
+          ))}
+        </span>
+        <ChevronDown size={14} aria-hidden="true" />
+      </button>
+      {open && (
+        <div
+          className="theme-picker-options"
+          id="theme-options"
+          role="group"
+          aria-label="Choose appearance theme"
+        >
+          {THEMES.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`theme-choice ${theme === item.id ? "selected" : ""}`}
+              aria-pressed={theme === item.id}
+              onClick={() => {
+                onChange(item.id);
+                setOpen(false);
+              }}
+            >
+              <span className="theme-swatch-preview" aria-hidden="true">
+                {item.swatches.map((color) => (
+                  <i key={color} style={{ backgroundColor: color }} />
+                ))}
+              </span>
+              <span>
+                <b>{item.name}</b>
+                <small>{item.description}</small>
+              </span>
+              {theme === item.id && <Check size={15} aria-label="Selected" />}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -2953,16 +3032,18 @@ function SettingsPage() {
             Appearance
             <select
               value={data.preferences.theme}
-              onChange={(event) =>
-                update(
-                  "theme",
-                  event.target.value as AppData["preferences"]["theme"],
-                )
-              }
+              onChange={(event) => {
+                const selected = THEMES.find(
+                  (theme) => theme.id === event.target.value,
+                );
+                if (selected) update("theme", selected.id);
+              }}
             >
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-              <option value="system">System</option>
+              {THEMES.map((theme) => (
+                <option value={theme.id} key={theme.id}>
+                  {theme.name}
+                </option>
+              ))}
             </select>
           </label>
         </div>
